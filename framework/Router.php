@@ -3,50 +3,58 @@ namespace Framework;
 
 class Router {
 
+    private static Request $request;
+    private static string $basepath;
     private static array $routes = [];
+    private static array $supportedHttpMethods = ['GET', 'POST'];
 
-    public static function add(string $method, string $expression, callable $function): void {
+    public static function init(string $basepath, Request $request): void {
+        self::$request = $request;
+        self::$basepath = ($basepath === '') ? '/' : $basepath;
+    }
+
+    public static function __callStatic($name, $args) {
+        if(!in_array(strtoupper($name), self::$supportedHttpMethods))
+            self::invalidMethodHandler();
+
+        list($route, $function) = $args;
         array_push(self::$routes, [
-            'expression' => $expression,
+            'route' => $route,
             'function' => $function,
-            'method' => $method
+            'method' => $name
         ]);
     }
 
-    public static function start($basepath = '/'): void {
-        try {
-            $basepath = ($basepath == '') ? '/' : $basepath;
-            $parsed_url = parse_url($_SERVER['REQUEST_URI']);
-            $path = isset($parsed_url['path']) ? $parsed_url['path'] : '/';
-            $method = strtolower($_SERVER['REQUEST_METHOD']);
+    public static function start(): void {
+        $route_match_found = false;
+        $parsed_url = parse_url(self::$request->requestUri);
+        $path = isset($parsed_url['path']) ? $parsed_url['path'] : '/';
+        $method = strtolower(self::$request->requestMethod);
 
-            $path_match_found = false;
-            $route_match_found = false;
-
-            foreach(self::$routes as $route) {
-                $route['expression'] = "^".($basepath != '/' ? "({$basepath})" : '')."{$route['expression']}$";
-                if(preg_match("#{$route['expression']}#", $path, $matches)) {
-                    $path_match_found = true;
-                    if($method == $route['method']) {
-                        array_shift($matches);
-                        if($basepath != '')
-                            array_shift($matches);
-                        // call_user_func_array($route['function'], $matches);
-                        call_user_func_array($route['function'], [new Request()]);
-                        $route_match_found = true;
-                        break;
-                    }
-                }
+        foreach(self::$routes as $route) {
+            $b = (self::$basepath !== '/') ? '('.self::$basepath.')' : '';
+            $route['route'] = "^{$b}{$route['route']}$";
+            if(preg_match("#{$route['route']}#", $path, $matches)) {
+                if($method !== $route['method'])
+                    self::invalidMethodHandler();
+                $route_match_found = true;
+                call_user_func_array($route['function'], [self::$request]);
+                break;
             }
-
-            if($path_match_found && !$route_match_found) {
-                throw new \Exception('HTTP/1.0 405 Method Not Allowed');
-            } else if(!$path_match_found) {
-                throw new \Exception('HTTP/1.0 404 Not Found');
-            }
-
-        } catch(\Exception $e) {
-            echo "<pre>{$e->getMessage()}</pre>";
         }
+
+        if(!$route_match_found)
+            self::pageNotFoundHandler();
     }
+
+    private static function invalidMethodHandler(): void {
+        header(self::$request->serverProtocol.' 405 Method Not Allowed');
+        exit();
+    }
+
+    private static function pageNotFoundHandler(): void {
+        header(self::$request->serverProtocol.' 404 Not Found');
+        exit();
+    }
+
 }
