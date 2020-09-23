@@ -1,6 +1,7 @@
 <?php
 use Framework\Router;
 
+require('framework/Request.php');
 require('framework/Router.php');
 require('controllers/UserController.php');
 require('routes/web.php');
