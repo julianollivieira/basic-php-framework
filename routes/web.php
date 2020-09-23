@@ -1,13 +1,14 @@
 <?php
+use Framework\Router;
 
-Router::add('get', '/', function() {
+Router::add('get', '/', function(): void {
     echo "<h1>Home page</h1>";
 });
 
-Router::add('get', '/login', function() {
+Router::add('get', '/login', function(): void {
     echo "<h1>Login page</h1>";
 });
 
-Router::add('get', '/register', function() {
+Router::add('get', '/register', function(): void {
     echo "<h1>Register page</h1>";
 });
