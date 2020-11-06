@@ -4,11 +4,11 @@ use Framework\Request;
 
 class UserController {
 
-    public static function Login(Request $request): void {
+    public function Login(Request $request): void {
         echo json_encode($request->getBody());
     }
 
-    public static function Register(Request $request): void {
+    public function Register(Request $request): void {
         echo json_encode($request->getBody());
     }
 

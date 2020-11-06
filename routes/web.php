@@ -1,14 +1,16 @@
 <?php
 use Framework\Router;
+use Framework\Render;
+use Framework\Template;
 
 Router::get('/', function(): void {
-    echo '<h1>Home page</h1>';
+    Render::withTemplate('home.php', [Template::class, 'Main']);
 });
 
 Router::get('/login', function(): void {
-    echo '<h1>Login page</h1>';
+    Render::withTemplate('login.php', [Template::class, 'Main']);
 });
 
 Router::get('/register', function(): void {
-    echo '<h1>Register page</h1>';
+    Render::withTemplate('register.php', [Template::class, 'Main']);
 });

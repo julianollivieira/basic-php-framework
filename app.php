@@ -3,6 +3,8 @@ use Framework\Router;
 use Framework\Request;
 
 require('framework/Request.php');
+require('framework/Template.php');
+require('framework/Render.php');
 require('framework/Router.php');
 Router::init('/', new Request());
 
